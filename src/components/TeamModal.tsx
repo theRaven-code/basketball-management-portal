@@ -23,14 +23,23 @@ export default function TeamModal({
   onUpdate,
   isNBATeam = false,
 }: TeamModalProps) {
-  const { players, playerTeams, assignPlayerToTeam, unassignPlayerFromTeam } =
-    useApp();
+  const {
+    players,
+    playerTeams,
+    assignPlayerToTeam,
+    unassignPlayerFromTeam,
+    customTeams,
+  } = useApp();
   const [formData, setFormData] = useState({
     name: team.name,
     region: isNBATeam ? (team as NBATeam).city : (team as CustomTeam).region,
     country: "America",
   });
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    region?: string;
+    general?: string;
+  }>({});
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
 
   useEffect(() => {
@@ -42,12 +51,48 @@ export default function TeamModal({
           : (team as CustomTeam).region,
         country: "America",
       });
-      setError(null);
+      setErrors({});
     }
   }, [isOpen, team, isNBATeam]);
 
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = "Team name is required";
+    } else if (formData.name.length < 3) {
+      newErrors.name = "Team name must be at least 3 characters long";
+    } else if (!isNBATeam && formData.name !== team.name) {
+      const isNameUnique = !customTeams.some(
+        (t) =>
+          t.id !== team.id &&
+          t.name.toLowerCase() === formData.name.toLowerCase()
+      );
+      if (!isNameUnique) {
+        newErrors.name = "Team name must be unique";
+      }
+    }
+
+    // Region validation
+    if (!formData.region.trim()) {
+      newErrors.region = "Region is required";
+    } else if (formData.region.length < 2) {
+      newErrors.region = "Region must be at least 2 characters long";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       if (isNBATeam) {
         const nbaTeam = team as NBATeam;
@@ -62,7 +107,9 @@ export default function TeamModal({
       }
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update team");
+      setErrors({
+        general: err instanceof Error ? err.message : "Failed to update team",
+      });
     }
   };
 
@@ -72,15 +119,49 @@ export default function TeamModal({
       ...prev,
       [name]: value,
     }));
+
+    // Real-time validation for team name
+    if (name === "name") {
+      const newErrors = { ...errors };
+      if (!value.trim()) {
+        newErrors.name = "Team name is required";
+      } else if (value.length < 3) {
+        newErrors.name = "Team name must be at least 3 characters long";
+      } else if (!isNBATeam && value !== team.name) {
+        const isNameUnique = !customTeams.some(
+          (t) =>
+            t.id !== team.id && t.name.toLowerCase() === value.toLowerCase()
+        );
+        if (!isNameUnique) {
+          newErrors.name = "Team name must be unique";
+        } else {
+          delete newErrors.name;
+        }
+      } else {
+        delete newErrors.name;
+      }
+      setErrors(newErrors);
+    } else if (name === "region") {
+      const newErrors = { ...errors };
+      if (!value.trim()) {
+        newErrors.region = "Region is required";
+      } else if (value.length < 2) {
+        newErrors.region = "Region must be at least 2 characters long";
+      } else {
+        delete newErrors.region;
+      }
+      setErrors(newErrors);
+    }
   };
 
   const handleUnassignPlayer = (playerId: number) => {
     try {
       unassignPlayerFromTeam(playerId);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to unassign player"
-      );
+      setErrors({
+        general:
+          err instanceof Error ? err.message : "Failed to unassign player",
+      });
     }
   };
 
@@ -89,7 +170,9 @@ export default function TeamModal({
       assignPlayerToTeam(playerId, team.id.toString());
       setShowAddPlayerModal(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to assign player");
+      setErrors({
+        general: err instanceof Error ? err.message : "Failed to assign player",
+      });
     }
   };
 
@@ -110,9 +193,9 @@ export default function TeamModal({
           Edit {isNBATeam ? "NBA" : ""} Team
         </h2>
 
-        {error && (
-          <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
-            {error}
+        {errors.general && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {errors.general}
           </div>
         )}
 
@@ -126,9 +209,16 @@ export default function TeamModal({
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.name
+                  ? "border-red-300 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-blue-500"
+              }`}
+              placeholder="Enter team name"
             />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -140,9 +230,16 @@ export default function TeamModal({
               name="region"
               value={formData.region}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.region
+                  ? "border-red-300 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-blue-500"
+              }`}
+              placeholder={`Enter ${isNBATeam ? "city" : "region"}`}
             />
+            {errors.region && (
+              <p className="mt-1 text-sm text-red-600">{errors.region}</p>
+            )}
           </div>
 
           <div>
@@ -210,7 +307,12 @@ export default function TeamModal({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              disabled={!!errors.name || !!errors.region}
+              className={`px-4 py-2 text-white rounded-md ${
+                errors.name || errors.region
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
               Update Team
             </button>

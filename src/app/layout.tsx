@@ -19,14 +19,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <body
+        className={`${inter.className} min-h-screen flex flex-col bg-gray-50`}
+      >
         <AuthProvider>
           <AppProvider>
             <header className="sticky top-0 z-50">
               <Navbar />
             </header>
-            <main className="flex-1 container mx-auto px-4 py-6">
-              {children}
+            <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                {children}
+              </div>
             </main>
           </AppProvider>
         </AuthProvider>
