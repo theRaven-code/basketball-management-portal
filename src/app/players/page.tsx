@@ -6,6 +6,7 @@ import { useApp } from "@/context/AppContext";
 import { useAuth } from "@/context/AuthContext";
 import { Player, CustomTeam } from "@/types/context";
 import { NBATeam } from "@balldontlie/sdk";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 type TeamInfo = (NBATeam & { type: "nba" }) | (CustomTeam & { type: "custom" });
 
@@ -21,7 +22,6 @@ export default function PlayersPage() {
     loadMorePlayers,
     assignPlayerToTeam,
     unassignPlayerFromTeam,
-    isLoading,
   } = useApp();
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
@@ -72,64 +72,69 @@ export default function PlayersPage() {
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Players</h1>
 
-      <div className="space-y-4">
-        {players.map((player) => {
-          const team = getTeamInfo(player.id);
-          return (
-            <div
-              key={player.id}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold text-lg">
-                    {player.first_name} {player.last_name}
-                  </h3>
-                  <p className="text-gray-600">
-                    Position: {player.position || "N/A"}
-                  </p>
-                  {team && (
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        Team: {team.type === "nba" ? team.full_name : team.name}
-                      </p>
-                      <button
-                        onClick={() => handleUnassignPlayer(player.id)}
-                        className="text-red-500 text-sm hover:text-red-700"
-                      >
-                        Unassign
-                      </button>
-                    </div>
+      <InfiniteScroll
+        dataLength={players.length}
+        next={loadMorePlayers}
+        hasMore={hasMore}
+        loader={
+          <div className="text-center py-4">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+          </div>
+        }
+        endMessage={
+          <p className="text-center text-gray-500 py-4">
+            No more players to load
+          </p>
+        }
+      >
+        <div className="space-y-4">
+          {players.map((player) => {
+            const team = getTeamInfo(player.id);
+            return (
+              <div
+                key={player.id}
+                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-lg">
+                      {player.first_name} {player.last_name}
+                    </h3>
+                    <p className="text-gray-600">
+                      Position: {player.position || "N/A"}
+                    </p>
+                    {team && (
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          Team:{" "}
+                          {team.type === "nba" ? team.full_name : team.name}
+                        </p>
+                        <button
+                          onClick={() => handleUnassignPlayer(player.id)}
+                          className="text-red-500 text-sm hover:text-red-700"
+                        >
+                          Unassign
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {!team && (
+                    <button
+                      onClick={() => {
+                        setSelectedPlayer(player);
+                        setShowAssignmentModal(true);
+                      }}
+                      className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                    >
+                      Assign to Team
+                    </button>
                   )}
                 </div>
-                {!team && (
-                  <button
-                    onClick={() => {
-                      setSelectedPlayer(player);
-                      setShowAssignmentModal(true);
-                    }}
-                    className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-                  >
-                    Assign to Team
-                  </button>
-                )}
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {hasMore && (
-        <div className="mt-6 flex justify-center">
-          <button
-            onClick={loadMorePlayers}
-            disabled={isLoading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "Loading..." : "Load More"}
-          </button>
+            );
+          })}
         </div>
-      )}
+      </InfiniteScroll>
 
       {showAssignmentModal && selectedPlayer && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
