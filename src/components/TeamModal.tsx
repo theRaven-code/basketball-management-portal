@@ -187,8 +187,8 @@ export default function TeamModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white border-2 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-3 sm:p-4 md:p-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
@@ -346,8 +346,8 @@ export default function TeamModal({
 
       {/* Add Player Modal */}
       {showAddPlayerModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white border-2 rounded-lg w-full max-w-md">
             <div className="p-3 sm:p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base sm:text-lg font-semibold">

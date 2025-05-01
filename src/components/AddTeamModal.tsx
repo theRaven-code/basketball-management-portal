@@ -110,8 +110,8 @@ export default function AddTeamModal({ isOpen, onClose }: AddTeamModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-white border-2 rounded-lg p-6 max-w-md w-full">
         <h2 className="text-2xl font-bold mb-4">Add New Team</h2>
 
         {errors.general && (

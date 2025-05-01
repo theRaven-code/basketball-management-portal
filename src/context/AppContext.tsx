@@ -14,16 +14,10 @@ const api = new BalldontlieAPI({
   apiKey: "fe3a6dfd-c831-4fd6-be76-8fb095221d0c",
 });
 
-// Move cache outside AppProvider so it persists across renders
-// const requestCache = new Map<string, Promise<void>>();
-
 // Generate a stable ID based on team name and timestamp
 const generateTeamId = (name: string) => {
   return `${name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
 };
-
-// Move inFlightCursors outside AppProvider so it persists
-// const inFlightCursors = new Set<string | null>();
 
 interface AppState {
   user: { id: string; email: string; name: string } | null;
