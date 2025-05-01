@@ -71,7 +71,7 @@ export default function Navbar() {
                   className={`${
                     isActive("/players")
                       ? "text-white font-medium"
-                      : "hover:text-blue-100"
+                      : "text-gray-100 hover:text-blue-100"
                   } transition-all duration-200`}
                 >
                   Players
@@ -81,7 +81,7 @@ export default function Navbar() {
                   className={`${
                     isActive("/teams")
                       ? "text-white font-medium"
-                      : "hover:text-blue-100"
+                      : "text-gray-100 hover:text-blue-100"
                   } transition-all duration-200`}
                 >
                   Teams
