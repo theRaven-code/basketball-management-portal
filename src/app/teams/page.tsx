@@ -3,31 +3,24 @@
 import { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import AddTeamModal from "@/components/AddTeamModal";
-import EditTeamModal from "@/components/EditTeamModal";
-import { CustomTeam } from "@/types/context";
 
 export default function TeamsPage() {
-  const { teams, customTeams, fetchTeams, isLoading, deleteTeam, updateTeam } =
-    useApp();
+  const {
+    teams,
+    customTeams,
+    fetchTeams,
+    isLoading,
+    deleteTeam,
+    players,
+    playerTeams,
+  } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<CustomTeam | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     fetchTeams();
   }, [fetchTeams]);
-
-  const handleEditClick = (team: CustomTeam) => {
-    setSelectedTeam(team);
-    setIsEditModalOpen(true);
-  };
-
-  const handleUpdateTeam = (teamId: string, data: Partial<CustomTeam>) => {
-    updateTeam(teamId, data);
-    setIsEditModalOpen(false);
-  };
 
   if (!mounted) {
     return null;
@@ -59,56 +52,79 @@ export default function TeamsPage() {
         <section>
           <h2 className="text-xl font-semibold mb-4">NBA Teams</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {teams?.map((team) => (
-              <div
-                key={`nba-${team.id}`}
-                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <h3 className="font-semibold text-lg">{team.full_name}</h3>
-                <p className="text-gray-600">{team.city}</p>
-                <p className="text-sm text-gray-500">
-                  {team.conference} Conference
-                </p>
-              </div>
-            ))}
+            {teams?.map((team) => {
+              // Find players assigned to this NBA team
+              const assignedPlayers = players.filter(
+                (player) => playerTeams[player.id] === team.id.toString()
+              );
+              return (
+                <div
+                  key={`nba-${team.id}`}
+                  className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+                >
+                  <h3 className="font-semibold text-lg">{team.full_name}</h3>
+                  <p className="text-gray-600">{team.city}</p>
+                  <p className="text-sm text-gray-500">
+                    {team.conference} Conference
+                  </p>
+                  <p className="text-sm text-blue-600 font-semibold mt-2">
+                    Assigned Players: {assignedPlayers.length}
+                  </p>
+                  {assignedPlayers.length > 0 && (
+                    <ul className="mt-1 text-sm text-gray-700 list-disc list-inside">
+                      {assignedPlayers.map((player) => (
+                        <li key={player.id}>
+                          {player.first_name} {player.last_name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-4">Custom Teams</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {customTeams?.map((team) => (
-              <div
-                key={`custom-${team.id}`}
-                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="flex justify-between items-start">
+            {customTeams?.map((team) => {
+              // Find players assigned to this custom team
+              const assignedPlayers = players.filter(
+                (player) => playerTeams[player.id] === team.id
+              );
+              return (
+                <div
+                  key={`custom-${team.id}`}
+                  className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+                >
                   <div>
                     <h3 className="font-semibold text-lg">{team.name}</h3>
                     <p className="text-gray-600">
                       {team.region}, {team.country}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      {team.players.length} players
+                    <p className="text-sm text-blue-600 font-semibold mt-2">
+                      Assigned Players: {assignedPlayers.length}
                     </p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditClick(team)}
-                      className="text-blue-500 hover:text-blue-700"
-                    >
-                      Edit
-                    </button>
+                    {assignedPlayers.length > 0 && (
+                      <ul className="mt-1 text-sm text-gray-700 list-disc list-inside">
+                        {assignedPlayers.map((player) => (
+                          <li key={player.id}>
+                            {player.first_name} {player.last_name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <button
                       onClick={() => deleteTeam(team.id)}
-                      className="text-red-500 hover:text-red-700"
+                      className="mt-4 text-red-500 hover:text-red-700 text-sm"
                     >
-                      Delete
+                      Delete Team
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </div>
@@ -117,15 +133,6 @@ export default function TeamsPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-
-      {selectedTeam && (
-        <EditTeamModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          team={selectedTeam}
-          onUpdate={handleUpdateTeam}
-        />
-      )}
     </div>
   );
 }
