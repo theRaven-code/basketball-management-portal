@@ -14,21 +14,27 @@ const api = new BalldontlieAPI({
   apiKey: "fe3a6dfd-c831-4fd6-be76-8fb095221d0c",
 });
 
+// Move cache outside AppProvider so it persists across renders
+// const requestCache = new Map<string, Promise<void>>();
+
 // Generate a stable ID based on team name and timestamp
 const generateTeamId = (name: string) => {
   return `${name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
 };
+
+// Move inFlightCursors outside AppProvider so it persists
+// const inFlightCursors = new Set<string | null>();
 
 interface AppState {
   user: { id: string; email: string; name: string } | null;
   teams: NBATeam[];
   customTeams: CustomTeam[];
   players: Player[];
-  playerTeams: Record<number, string>; // Map of playerId to teamId
+  playerTeams: Record<number, string>;
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
-  currentPage: number;
+  nextCursor: number | null;
 }
 
 const initialState: AppState = {
@@ -36,11 +42,11 @@ const initialState: AppState = {
   teams: [],
   customTeams: [],
   players: [],
-  playerTeams: {}, // Map of playerId to teamId
+  playerTeams: {},
   isLoading: false,
   error: null,
   hasMore: true,
-  currentPage: 1,
+  nextCursor: null,
 };
 
 // Load state from localStorage
@@ -60,6 +66,8 @@ const loadState = (): AppState => {
       players: parsed.players || [],
       playerTeams: parsed.playerTeams || {},
       user: parsed.user || null,
+      nextCursor:
+        typeof parsed.nextCursor === "string" ? parsed.nextCursor : null,
     };
   } catch (error) {
     console.error("Failed to load state from localStorage:", error);
@@ -88,7 +96,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isInitialized) {
       fetchTeams();
-      fetchPlayers(1);
+      fetchPlayers();
       setIsInitialized(true);
     }
   }, [isInitialized]);
@@ -134,40 +142,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const fetchPlayers = useCallback(
-    async (page: number = 1) => {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
-      try {
-        const response = await api.nba.getPlayers({
-          per_page: 25,
-          cursor: (page - 1) * 25,
-        });
+  const fetchPlayers = useCallback(async () => {
+    if (state.isLoading) return;
 
-        // Create a Set of existing player IDs for quick lookup
-        const existingPlayerIds = new Set(state.players.map((p) => p.id));
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    try {
+      const response = await api.nba.getPlayers({
+        per_page: 10,
+        cursor: state.nextCursor || undefined,
+      });
 
-        // Filter out any players that already exist in our list
-        const newPlayers = (response.data || []).filter(
-          (player) => !existingPlayerIds.has(player.id)
-        );
+      const newPlayers = response.data || [];
+      setState((prev) => ({
+        ...prev,
+        players: prev.nextCursor
+          ? [...prev.players, ...newPlayers]
+          : newPlayers,
+        isLoading: false,
+        hasMore: !!response.meta?.next_cursor,
+        nextCursor: response.meta?.next_cursor ?? null,
+      }));
+    } catch (error) {
+      setState((prev) => ({
+        ...prev,
+        error: "Failed to fetch players",
+        isLoading: false,
+      }));
+      throw error;
+    }
+  }, [state.isLoading, state.nextCursor]);
 
-        setState((prev) => ({
-          ...prev,
-          players: [...prev.players, ...newPlayers],
-          isLoading: false,
-          hasMore: (response.meta?.next_cursor || 0) > 0,
-          currentPage: page,
-        }));
-      } catch {
-        setState((prev) => ({
-          ...prev,
-          error: "Failed to fetch players",
-          isLoading: false,
-        }));
-      }
-    },
-    [state.players]
-  );
+  const loadMorePlayers = useCallback(() => {
+    if (!state.isLoading && state.hasMore) {
+      fetchPlayers();
+    }
+  }, [state.isLoading, state.hasMore, fetchPlayers]);
 
   const addTeam = useCallback((team: Omit<CustomTeam, "id" | "players">) => {
     setState((prev) => {
@@ -296,11 +305,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         hasMore: state.hasMore,
         fetchTeams,
         fetchPlayers,
-        loadMorePlayers: () => {
-          if (!state.isLoading && state.hasMore) {
-            fetchPlayers(state.currentPage + 1);
-          }
-        },
+        loadMorePlayers,
         addTeam,
         updateTeam,
         deleteTeam,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { Player, CustomTeam } from "@/types/context";
 import { NBATeam } from "@balldontlie/sdk";
@@ -13,28 +13,14 @@ export default function PlayersPage() {
     teams,
     customTeams,
     playerTeams,
-    isLoading,
     hasMore,
-    fetchPlayers,
     loadMorePlayers,
     assignPlayerToTeam,
     unassignPlayerFromTeam,
+    isLoading,
   } = useApp();
-  const [mounted, setMounted] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    fetchPlayers();
-  }, [fetchPlayers]);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop === clientHeight && !isLoading && hasMore) {
-      loadMorePlayers();
-    }
-  };
 
   const handleAssignPlayer = (teamId: string) => {
     if (!selectedPlayer) return;
@@ -57,10 +43,6 @@ export default function PlayersPage() {
     }
   };
 
-  if (!mounted) {
-    return null;
-  }
-
   const getTeamInfo = (playerId: number): TeamInfo | null => {
     const teamId = playerTeams[playerId];
     if (!teamId) return null;
@@ -74,24 +56,16 @@ export default function PlayersPage() {
     return null;
   };
 
-  // Create a map of unique players by ID
-  const uniquePlayers = Array.from(
-    new Map(players.map((player) => [player.id, player])).values()
-  );
-
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Players</h1>
 
-      <div
-        className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto"
-        onScroll={handleScroll}
-      >
-        {uniquePlayers.map((player) => {
+      <div className="space-y-4">
+        {players.map((player) => {
           const team = getTeamInfo(player.id);
           return (
             <div
-              key={`player-${player.id}-${team?.id || "unassigned"}`}
+              key={player.id}
               className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start">
@@ -131,13 +105,19 @@ export default function PlayersPage() {
             </div>
           );
         })}
-
-        {isLoading && (
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        )}
       </div>
+
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={loadMorePlayers}
+            disabled={isLoading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
 
       {showAssignmentModal && selectedPlayer && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">

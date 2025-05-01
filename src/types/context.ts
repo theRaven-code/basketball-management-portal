@@ -51,7 +51,7 @@ export interface AppContextType {
   isLoading: boolean;
   hasMore: boolean;
   fetchTeams: () => Promise<void>;
-  fetchPlayers: (page?: number) => Promise<void>;
+  fetchPlayers: (cursor?: string | null) => Promise<void>;
   loadMorePlayers: () => void;
   addTeam: (team: Omit<CustomTeam, "id" | "players">) => void;
   updateTeam: (teamId: string, data: Partial<CustomTeam>) => void;
