@@ -99,7 +99,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       fetchPlayers();
       setIsInitialized(true);
     }
-  }, [isInitialized]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = async (username: string) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
@@ -149,15 +150,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await api.nba.getPlayers({
         per_page: 10,
-        cursor: state.nextCursor || undefined,
+        cursor:
+          state.players.length > 0
+            ? state.players[state.players.length - 1].id
+            : undefined,
       });
 
       const newPlayers = response.data || [];
+
+      // Create a Map to store unique players by ID
+      const uniquePlayersMap = new Map(
+        [...state.players, ...newPlayers].map((player) => [player.id, player])
+      );
+
+      // Convert Map values back to array
+      const uniquePlayers = Array.from(uniquePlayersMap.values());
+
       setState((prev) => ({
         ...prev,
-        players: prev.nextCursor
-          ? [...prev.players, ...newPlayers]
-          : newPlayers,
+        players: uniquePlayers,
         isLoading: false,
         hasMore: !!response.meta?.next_cursor,
         nextCursor: response.meta?.next_cursor ?? null,
@@ -170,7 +181,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }));
       throw error;
     }
-  }, [state.isLoading, state.nextCursor]);
+  }, [state.isLoading, state.nextCursor, state.players]);
 
   const loadMorePlayers = useCallback(() => {
     if (!state.isLoading && state.hasMore) {
@@ -291,6 +302,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const updateNBATeam = useCallback(
+    (teamId: number, data: Partial<NBATeam>) => {
+      setState((prev) => {
+        const updatedTeams = prev.teams.map((team) =>
+          team.id === teamId ? { ...team, ...data } : team
+        );
+        return {
+          ...prev,
+          teams: updatedTeams,
+        };
+      });
+    },
+    []
+  );
+
   return (
     <AppContext.Provider
       value={{
@@ -308,6 +334,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         loadMorePlayers,
         addTeam,
         updateTeam,
+        updateNBATeam,
         deleteTeam,
         assignPlayerToTeam,
         unassignPlayerFromTeam,

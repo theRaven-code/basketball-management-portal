@@ -55,6 +55,7 @@ export interface AppContextType {
   loadMorePlayers: () => void;
   addTeam: (team: Omit<CustomTeam, "id" | "players">) => void;
   updateTeam: (teamId: string, data: Partial<CustomTeam>) => void;
+  updateNBATeam: (teamId: number, data: Partial<NBATeam>) => void;
   deleteTeam: (teamId: string) => void;
   assignPlayerToTeam: (playerId: number, teamId: string) => void;
   unassignPlayerFromTeam: (playerId: number) => void;

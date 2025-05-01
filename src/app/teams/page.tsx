@@ -5,13 +5,33 @@ import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useAuth } from "@/context/AuthContext";
 import AddTeamModal from "@/components/AddTeamModal";
+import TeamModal from "@/components/TeamModal";
+import DeleteTeamModal from "@/components/DeleteTeamModal";
+import { NBATeam } from "@balldontlie/sdk";
+import { CustomTeam } from "@/types/context";
 
 export default function TeamsPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const { teams, customTeams, isLoading, deleteTeam, players, playerTeams } =
-    useApp();
+  const {
+    teams,
+    customTeams,
+    isLoading,
+    deleteTeam,
+    players,
+    playerTeams,
+    updateTeam,
+    updateNBATeam,
+  } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<NBATeam | null>(null);
+  const [selectedCustomTeam, setSelectedCustomTeam] = useState<string | null>(
+    null
+  );
+  const [teamToDelete, setTeamToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -30,6 +50,24 @@ export default function TeamsPage() {
       </div>
     );
   }
+
+  const handleNBATeamUpdate = (
+    teamId: string | number,
+    data: Partial<NBATeam> | Partial<CustomTeam>
+  ) => {
+    if (typeof teamId === "number") {
+      updateNBATeam(teamId, data as Partial<NBATeam>);
+    }
+  };
+
+  const handleCustomTeamUpdate = (
+    teamId: string | number,
+    data: Partial<NBATeam> | Partial<CustomTeam>
+  ) => {
+    if (typeof teamId === "string") {
+      updateTeam(teamId, data as Partial<CustomTeam>);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -57,23 +95,35 @@ export default function TeamsPage() {
                   key={`nba-${team.id}`}
                   className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
                 >
-                  <h3 className="font-semibold text-lg">{team.full_name}</h3>
-                  <p className="text-gray-600">{team.city}</p>
-                  <p className="text-sm text-gray-500">
-                    {team.conference} Conference
-                  </p>
-                  <p className="text-sm text-blue-600 font-semibold mt-2">
-                    Assigned Players: {assignedPlayers.length}
-                  </p>
-                  {assignedPlayers.length > 0 && (
-                    <ul className="mt-1 text-sm text-gray-700 list-disc list-inside">
-                      {assignedPlayers.map((player) => (
-                        <li key={player.id}>
-                          {player.first_name} {player.last_name}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg">
+                        {team.full_name}
+                      </h3>
+                      <p className="text-gray-600">{team.city}</p>
+                      <p className="text-sm text-gray-500">
+                        {team.conference} Conference
+                      </p>
+                      <p className="text-sm text-blue-600 font-semibold mt-2">
+                        Assigned Players: {assignedPlayers.length}
+                      </p>
+                      {assignedPlayers.length > 0 && (
+                        <ul className="mt-1 text-sm text-gray-700 list-disc list-inside">
+                          {assignedPlayers.map((player) => (
+                            <li key={player.id}>
+                              {player.first_name} {player.last_name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setSelectedTeam(team)}
+                      className="text-blue-500 hover:text-blue-700 text-sm"
+                    >
+                      Edit
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -93,29 +143,41 @@ export default function TeamsPage() {
                   key={`custom-${team.id}`}
                   className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
                 >
-                  <div>
-                    <h3 className="font-semibold text-lg">{team.name}</h3>
-                    <p className="text-gray-600">
-                      {team.region}, {team.country}
-                    </p>
-                    <p className="text-sm text-blue-600 font-semibold mt-2">
-                      Assigned Players: {assignedPlayers.length}
-                    </p>
-                    {assignedPlayers.length > 0 && (
-                      <ul className="mt-1 text-sm text-gray-700 list-disc list-inside">
-                        {assignedPlayers.map((player) => (
-                          <li key={player.id}>
-                            {player.first_name} {player.last_name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <button
-                      onClick={() => deleteTeam(team.id)}
-                      className="mt-4 text-red-500 hover:text-red-700 text-sm"
-                    >
-                      Delete Team
-                    </button>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg">{team.name}</h3>
+                      <p className="text-gray-600">
+                        {team.region}, {team.country}
+                      </p>
+                      <p className="text-sm text-blue-600 font-semibold mt-2">
+                        Assigned Players: {assignedPlayers.length}
+                      </p>
+                      {assignedPlayers.length > 0 && (
+                        <ul className="mt-1 text-sm text-gray-700 list-disc list-inside">
+                          {assignedPlayers.map((player) => (
+                            <li key={player.id}>
+                              {player.first_name} {player.last_name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end space-y-2">
+                      <button
+                        onClick={() => setSelectedCustomTeam(team.id)}
+                        className="text-blue-500 hover:text-blue-700 text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() =>
+                          setTeamToDelete({ id: team.id, name: team.name })
+                        }
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -128,6 +190,35 @@ export default function TeamsPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
+
+      {selectedTeam && (
+        <TeamModal
+          isOpen={!!selectedTeam}
+          onClose={() => setSelectedTeam(null)}
+          team={selectedTeam}
+          onUpdate={handleNBATeamUpdate}
+          isNBATeam={true}
+        />
+      )}
+
+      {selectedCustomTeam && (
+        <TeamModal
+          isOpen={!!selectedCustomTeam}
+          onClose={() => setSelectedCustomTeam(null)}
+          team={customTeams.find((t) => t.id === selectedCustomTeam)!}
+          onUpdate={handleCustomTeamUpdate}
+          isNBATeam={false}
+        />
+      )}
+
+      {teamToDelete && (
+        <DeleteTeamModal
+          isOpen={!!teamToDelete}
+          onClose={() => setTeamToDelete(null)}
+          onDelete={() => deleteTeam(teamToDelete.id)}
+          teamName={teamToDelete.name}
+        />
+      )}
     </div>
   );
 }

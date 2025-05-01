@@ -1,28 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { NBATeam } from "@balldontlie/sdk";
 import { CustomTeam } from "@/types/context";
 import { useApp } from "@/context/AppContext";
 
-interface EditTeamModalProps {
+interface TeamModalProps {
   isOpen: boolean;
   onClose: () => void;
-  team: CustomTeam;
-  onUpdate: (teamId: string, data: Partial<CustomTeam>) => void;
+  team: NBATeam | CustomTeam;
+  onUpdate: (
+    teamId: string | number,
+    data: Partial<NBATeam> | Partial<CustomTeam>
+  ) => void;
+  isNBATeam?: boolean;
 }
 
-export default function EditTeamModal({
+export default function TeamModal({
   isOpen,
   onClose,
   team,
   onUpdate,
-}: EditTeamModalProps) {
+  isNBATeam = false,
+}: TeamModalProps) {
   const { players, playerTeams, assignPlayerToTeam, unassignPlayerFromTeam } =
     useApp();
   const [formData, setFormData] = useState({
     name: team.name,
-    region: team.region,
-    country: team.country,
+    region: isNBATeam ? (team as NBATeam).city : (team as CustomTeam).region,
+    country: "America",
   });
   const [error, setError] = useState<string | null>(null);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
@@ -31,17 +37,29 @@ export default function EditTeamModal({
     if (isOpen) {
       setFormData({
         name: team.name,
-        region: team.region,
-        country: team.country,
+        region: isNBATeam
+          ? (team as NBATeam).city
+          : (team as CustomTeam).region,
+        country: "America",
       });
       setError(null);
     }
-  }, [isOpen, team]);
+  }, [isOpen, team, isNBATeam]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      onUpdate(team.id, formData);
+      if (isNBATeam) {
+        const nbaTeam = team as NBATeam;
+        onUpdate(nbaTeam.id, { name: formData.name, city: formData.region });
+      } else {
+        const customTeam = team as CustomTeam;
+        onUpdate(customTeam.id, {
+          name: formData.name,
+          region: formData.region,
+          country: formData.country,
+        });
+      }
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update team");
@@ -68,7 +86,7 @@ export default function EditTeamModal({
 
   const handleAssignPlayer = (playerId: number) => {
     try {
-      assignPlayerToTeam(playerId, team.id);
+      assignPlayerToTeam(playerId, team.id.toString());
       setShowAddPlayerModal(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to assign player");
@@ -77,7 +95,7 @@ export default function EditTeamModal({
 
   // Get players assigned to this team
   const assignedPlayers = players.filter(
-    (player) => playerTeams[player.id] === team.id
+    (player) => playerTeams[player.id] === team.id.toString()
   );
 
   // Get unassigned players
@@ -88,7 +106,9 @@ export default function EditTeamModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg max-w-md w-full">
-        <h2 className="text-xl font-semibold mb-4">Edit Team</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          Edit {isNBATeam ? "NBA" : ""} Team
+        </h2>
 
         {error && (
           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
@@ -113,7 +133,7 @@ export default function EditTeamModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Region
+              {isNBATeam ? "City" : "Region"}
             </label>
             <input
               type="text"
@@ -133,9 +153,8 @@ export default function EditTeamModal({
               type="text"
               name="country"
               value={formData.country}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              readOnly
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-100"
             />
           </div>
 

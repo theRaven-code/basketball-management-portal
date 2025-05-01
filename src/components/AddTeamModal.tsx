@@ -13,7 +13,7 @@ export default function AddTeamModal({ isOpen, onClose }: AddTeamModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     region: "",
-    country: "",
+    country: "America",
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -23,9 +23,10 @@ export default function AddTeamModal({ isOpen, onClose }: AddTeamModalProps) {
 
     try {
       addTeam(formData);
-      setFormData({ name: "", region: "", country: "" });
+      setFormData({ name: "", region: "", country: "America" });
       onClose();
     } catch (err) {
+      console.error(err);
       setError("Team name must be unique");
     }
   };
@@ -97,20 +98,12 @@ export default function AddTeamModal({ isOpen, onClose }: AddTeamModalProps) {
               id="country"
               name="country"
               value={formData.country}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              readOnly
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100"
             />
           </div>
 
           <div className="flex justify-end space-x-3 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            >
-              Cancel
-            </button>
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
