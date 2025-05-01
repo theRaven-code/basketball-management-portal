@@ -13,21 +13,33 @@ export default function Navbar() {
           <Link href="/" className="text-xl font-bold">
             Basketball Portal
           </Link>
-          <Link
-            href="/players"
-            className="hover:text-blue-200 transition-colors"
-          >
-            Players
-          </Link>
-          <Link href="/teams" className="hover:text-blue-200 transition-colors">
-            Teams
-          </Link>
+          {user && (
+            <>
+              <Link
+                href="/players"
+                className="hover:text-blue-200 transition-colors"
+              >
+                Players
+              </Link>
+              <Link
+                href="/teams"
+                className="hover:text-blue-200 transition-colors"
+              >
+                Teams
+              </Link>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              <span className="text-sm">Welcome, {user.username}</span>
+              <span className="text-sm">
+                Welcome,{" "}
+                {user.username.length > 12
+                  ? user.username.slice(0, 12) + "..."
+                  : user.username}
+              </span>
               <button
                 onClick={logout}
                 className="bg-white text-blue-600 px-4 py-2 rounded hover:bg-blue-50 transition-colors"

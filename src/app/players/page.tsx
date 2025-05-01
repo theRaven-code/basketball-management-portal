@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import { Player, CustomTeam } from "@/types/context";
 import { NBATeam } from "@balldontlie/sdk";
 
 type TeamInfo = (NBATeam & { type: "nba" }) | (CustomTeam & { type: "custom" });
 
 export default function PlayersPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const {
     players,
     teams,
@@ -21,6 +25,14 @@ export default function PlayersPage() {
   } = useApp();
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [user, router]);
+
+  if (!user) return null;
 
   const handleAssignPlayer = (teamId: string) => {
     if (!selectedPlayer) return;

@@ -1,30 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import AddTeamModal from "@/components/AddTeamModal";
 
 export default function TeamsPage() {
-  const {
-    teams,
-    customTeams,
-    fetchTeams,
-    isLoading,
-    deleteTeam,
-    players,
-    playerTeams,
-  } = useApp();
+  const { user } = useAuth();
+  const router = useRouter();
+  const { teams, customTeams, isLoading, deleteTeam, players, playerTeams } =
+    useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    fetchTeams();
-  }, [fetchTeams]);
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [user, router]);
 
-  if (!mounted) {
-    return null;
-  }
+  if (!user) return null;
 
   if (isLoading) {
     return (
