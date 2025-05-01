@@ -187,182 +187,221 @@ export default function TeamModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full">
-        <h2 className="text-xl font-semibold mb-4">
-          Edit {isNBATeam ? "NBA" : ""} Team
-        </h2>
-
-        {errors.general && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {errors.general}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Team Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                errors.name
-                  ? "border-red-300 focus:ring-red-500"
-                  : "border-gray-300 focus:ring-blue-500"
-              }`}
-              placeholder="Enter team name"
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isNBATeam ? "City" : "Region"}
-            </label>
-            <input
-              type="text"
-              name="region"
-              value={formData.region}
-              onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                errors.region
-                  ? "border-red-300 focus:ring-red-500"
-                  : "border-gray-300 focus:ring-blue-500"
-              }`}
-              placeholder={`Enter ${isNBATeam ? "city" : "region"}`}
-            />
-            {errors.region && (
-              <p className="mt-1 text-sm text-red-600">{errors.region}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Country
-            </label>
-            <input
-              type="text"
-              name="country"
-              value={formData.country}
-              readOnly
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-100"
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Assigned Players ({assignedPlayers.length})
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowAddPlayerModal(true)}
-                className="text-sm text-blue-600 hover:text-blue-800"
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="p-3 sm:p-4 md:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
+              Edit {isNBATeam ? "NBA" : ""} Team
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                Add Player
-              </button>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {errors.general && (
+            <div className="mb-3 p-2 bg-red-100 border border-red-400 text-red-700 rounded text-xs sm:text-sm">
+              {errors.general}
             </div>
-            <div className="max-h-40 overflow-y-auto border rounded-md p-2">
-              {assignedPlayers.length === 0 ? (
-                <p className="text-gray-500 text-sm">
-                  No players assigned to this team
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {assignedPlayers.map((player) => (
-                    <li
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Team Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  readOnly={isNBATeam}
+                  className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 ${
+                    errors.name
+                      ? "border-red-300 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-blue-500"
+                  } ${isNBATeam ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                  placeholder="Enter team name"
+                />
+                {errors.name && (
+                  <p className="mt-1 text-xs text-red-600">{errors.name}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  {isNBATeam ? "City" : "Region"}
+                </label>
+                <input
+                  type="text"
+                  name="region"
+                  value={formData.region}
+                  onChange={handleChange}
+                  readOnly={isNBATeam}
+                  className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 ${
+                    errors.region
+                      ? "border-red-300 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-blue-500"
+                  } ${isNBATeam ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                  placeholder={`Enter ${isNBATeam ? "city" : "region"}`}
+                />
+                {errors.region && (
+                  <p className="mt-1 text-xs text-red-600">{errors.region}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Country
+                </label>
+                <input
+                  type="text"
+                  name="country"
+                  value={formData.country}
+                  onChange={handleChange}
+                  readOnly={isNBATeam}
+                  className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 ${"border-gray-300 focus:ring-blue-500"} ${
+                    isNBATeam ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
+                  placeholder="Enter country"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm sm:text-base font-medium">
+                  Assigned Players
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowAddPlayerModal(true)}
+                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-800"
+                >
+                  + Add Player
+                </button>
+              </div>
+
+              <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                {assignedPlayers.length > 0 ? (
+                  assignedPlayers.map((player) => (
+                    <div
                       key={player.id}
-                      className="flex justify-between items-center"
+                      className="flex items-center justify-between p-1.5 bg-gray-50 rounded"
                     >
-                      <span className="text-sm">
+                      <span className="text-xs sm:text-sm truncate flex-1">
                         {player.first_name} {player.last_name}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleUnassignPlayer(player.id)}
-                        className="text-red-500 hover:text-red-700 text-sm"
+                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
                       >
-                        Unassign
+                        Remove
                       </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-gray-500 text-center py-2">
+                    No players assigned
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className="flex justify-end space-x-2 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!!errors.name || !!errors.region}
-              className={`px-4 py-2 text-white rounded-md ${
-                errors.name || errors.region
-                  ? "bg-blue-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}
-            >
-              Update Team
-            </button>
-          </div>
-        </form>
+            <div className="flex flex-col sm:flex-row gap-2 pt-3">
+              <button
+                type="submit"
+                className="w-full sm:w-auto bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm"
+              >
+                Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full sm:w-auto bg-gray-200 text-gray-800 px-3 py-1.5 rounded-md hover:bg-gray-300 transition-colors duration-200 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
 
-        {showAddPlayerModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg max-w-md w-full">
-              <h3 className="text-lg font-semibold mb-4">Add Player to Team</h3>
-              <div className="max-h-60 overflow-y-auto">
+      {/* Add Player Modal */}
+      {showAddPlayerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-lg w-full max-w-md">
+            <div className="p-3 sm:p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base sm:text-lg font-semibold">
+                  Add Player to Team
+                </h3>
+                <button
+                  onClick={() => setShowAddPlayerModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="max-h-60 overflow-y-auto space-y-1.5">
                 {unassignedPlayers.length === 0 ? (
-                  <p className="text-gray-500 text-sm">
+                  <p className="text-xs text-gray-500 text-center py-4">
                     No unassigned players available
                   </p>
                 ) : (
-                  <ul className="space-y-2">
-                    {unassignedPlayers.map((player) => (
-                      <li
-                        key={player.id}
-                        className="flex justify-between items-center"
+                  unassignedPlayers.map((player) => (
+                    <div
+                      key={player.id}
+                      className="flex items-center justify-between p-1.5 bg-gray-50 rounded"
+                    >
+                      <span className="text-xs sm:text-sm truncate flex-1">
+                        {player.first_name} {player.last_name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleAssignPlayer(player.id)}
+                        className="ml-2 text-blue-600 hover:text-blue-800 text-xs"
                       >
-                        <span className="text-sm">
-                          {player.first_name} {player.last_name}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleAssignPlayer(player.id)}
-                          className="text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                          Add
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                        Add
+                      </button>
+                    </div>
+                  ))
                 )}
-              </div>
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowAddPlayerModal(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-                >
-                  Close
-                </button>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
